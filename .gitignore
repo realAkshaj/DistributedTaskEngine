@@ -1,0 +1,53 @@
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+
+# --- .NET / C# ---
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+*.pfx
+TestResults/
+
+# --- C++ / CMake ---
+build/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+compile_commands.json
+.cache/
+Testing/
+
+# --- IDE / editor ---
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Generated gRPC stubs (regenerated on build) ---
+src/Orchestrator/Grpc/Generated/
+src/worker/src/generated/
+
+# --- Docker / runtime data ---
+docker-compose.override.yml
+pgdata/
+
+# --- Grafana runtime ---
+deploy/grafana/data/

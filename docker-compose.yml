@@ -16,6 +16,32 @@ services:
       timeout: 3s
       retries: 10
 
+  orchestrator:
+    build:
+      context: .
+      dockerfile: src/Orchestrator/Dockerfile
+    container_name: dte-orchestrator
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Database=dte;Username=dte;Password=${POSTGRES_PASSWORD:-changeme}"
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:5001:5001"
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/worker/Dockerfile
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+    environment:
+      DTE_ORCHESTRATOR: "orchestrator:5001"
+      DTE_MAX_PARALLEL: "4"
+      DTE_JOB_TYPES: "graph.bfs,noop"
+
   grafana:
     image: grafana/grafana:latest
     container_name: dte-grafana

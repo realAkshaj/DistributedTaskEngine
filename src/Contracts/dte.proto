@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package dte.v1;
+
+option csharp_namespace = "Dte.V1";
+
+service TaskDispatch {
+  rpc Stream(stream WorkerMessage) returns (stream OrchestratorMessage);
+}
+
+message WorkerMessage {
+  oneof kind {
+    Hello         hello       = 1;
+    Heartbeat     heartbeat   = 2;
+    TaskStarted   started     = 3;
+    TaskCompleted completed   = 4;
+    TaskFailed    failed      = 5;
+    LeaseRenewal  lease_renew = 6;
+  }
+}
+
+message OrchestratorMessage {
+  oneof kind {
+    Welcome       welcome    = 1;
+    Assignment    assignment = 2;
+    CancelRequest cancel     = 3;
+    Shutdown      shutdown   = 4;
+  }
+}
+
+message Hello {
+  string worker_id         = 1;
+  string version           = 2;
+  int32  max_parallel      = 3;
+  repeated string job_types = 4;
+}
+
+message Welcome {
+  int64 server_time_unix_ms   = 1;
+  int32 heartbeat_interval_ms = 2;
+}
+
+message Heartbeat {
+  int32 available_slots = 1;
+}
+
+message Assignment {
+  string task_id           = 1;
+  string job_type          = 2;
+  bytes  payload           = 3;
+  int32  attempt           = 4;
+  int64  lease_duration_ms = 5;
+}
+
+message TaskStarted {
+  string task_id = 1;
+}
+
+message TaskCompleted {
+  string task_id           = 1;
+  bytes  result            = 2;
+  ExecutionMetrics metrics = 3;
+}
+
+message TaskFailed {
+  string task_id = 1;
+  string error   = 2;
+}
+
+message LeaseRenewal {
+  string task_id = 1;
+}
+
+message CancelRequest {
+  string task_id = 1;
+}
+
+message Shutdown {
+  int64 drain_timeout_ms = 1;
+}
+
+message ExecutionMetrics {
+  int64 wall_ms        = 1;
+  int64 cpu_user_ms    = 2;
+  int64 cpu_sys_ms     = 3;
+  int64 peak_rss_bytes = 4;
+  int64 allocations    = 5;
+}

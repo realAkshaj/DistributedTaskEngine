@@ -1,6 +1,7 @@
 using Dte.Orchestrator.Api.Dto;
 using Dte.Orchestrator.Domain;
 using Dte.Orchestrator.Persistence;
+using Dte.Orchestrator.Scheduling;
 
 namespace Dte.Orchestrator.Api;
 
@@ -55,9 +56,15 @@ public static class JobsEndpoints
         return Results.Ok(rows.Select(JobResponse.From));
     }
 
-    static async Task<IResult> Cancel(Guid id, ITaskRepository repo, CancellationToken ct)
+    static async Task<IResult> Cancel(Guid id, ITaskRepository repo, WorkerRegistry registry, CancellationToken ct)
     {
-        var ok = await repo.CancelAsync(id, ct);
-        return ok ? Results.NoContent() : Results.Conflict(new { error = "task missing or already terminal" });
+        var outcome = await repo.CancelAsync(id, ct);
+        if (!outcome.Cancelled)
+            return Results.Conflict(new { error = "task missing or already terminal" });
+
+        if (outcome.PreviouslyAssignedWorker is Guid workerId)
+            registry.ReleaseSlot(workerId);
+
+        return Results.NoContent();
     }
 }

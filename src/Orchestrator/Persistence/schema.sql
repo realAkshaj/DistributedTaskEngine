@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS tasks (
                           'Success','Failed','DeadLettered','Cancelled')),
   attempts             INT NOT NULL DEFAULT 0,
   max_attempts         INT NOT NULL DEFAULT 3,
-  assigned_worker_id   UUID REFERENCES workers(id),
+  assigned_worker_id   UUID,
   lease_expires_at     TIMESTAMPTZ,
   estimated_runtime_ms INT,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),

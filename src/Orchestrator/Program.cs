@@ -1,5 +1,7 @@
 using Dte.Orchestrator.Api;
+using Dte.Orchestrator.Grpc;
 using Dte.Orchestrator.Persistence;
+using Dte.Orchestrator.Scheduling;
 using Npgsql;
 using Serilog;
 
@@ -15,6 +17,17 @@ var connString = builder.Configuration.GetConnectionString("Default")
 builder.Services.AddSingleton(_ => new NpgsqlDataSourceBuilder(connString).Build());
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddSingleton<SchemaInitializer>();
+builder.Services.AddSingleton<WorkerRegistry>();
+builder.Services.AddHostedService<SchedulerService>();
+builder.Services.AddHostedService<LeaseReaperService>();
+
+builder.Services.AddGrpc();
+
+builder.WebHost.ConfigureKestrel(o =>
+{
+    o.ListenAnyIP(8080, l => l.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1);
+    o.ListenAnyIP(5001, l => l.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
+});
 
 var app = builder.Build();
 
@@ -37,6 +50,7 @@ app.MapGet("/health/ready", async (NpgsqlDataSource ds) =>
 });
 
 app.MapJobs();
+app.MapGrpcService<WorkerHub>();
 
 app.Run();
 
